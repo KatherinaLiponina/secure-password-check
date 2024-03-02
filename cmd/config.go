@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"secure-password-check/core/dictionaries"
+	"strings"
 
 	"github.com/caarlos0/env/v9"
 )
@@ -13,32 +14,39 @@ type Config struct {
 	Interactive bool `env:"INTERACTIVE" envDefault:"false"`
 	Password    string
 
+	LevelsOfLogging []string `env:"LEVELS_OF_LOGGING" envSeparator:"," envDefault:"ERROR,WARN"`
+
 	Regulars struct {
-		MinLength             int `env:"MIN_PASSWORD_LENGTH" envDefault:"8"`
-		MaxSameSeqenceSymbols int // TODO: more regulars
+		MinLength             int      `env:"MIN_PASSWORD_LENGTH" envDefault:"8"`
+		MaxSameSeqenceSymbols int      `env:"MAX_SAME_LENGTH_SEQENCE_SYMBOL" envDefault:"3"`
+		AdditionalRegexps     []string `env:"ADDITIONAL_REGEXPRS" envSeparator:","`
 	}
 
 	Entropy struct {
-		CrackTimeThreshold float64
+		CrackTimeThreshold float64 `env:"CRACK_TIME_THRESHOLD" envDefault:"3600"`
 	}
 
 	Dictionaries struct {
 		English struct {
-			UseRemote  bool   `env:"ENGLISH_USE_REMOTE" envDefault:"true"`
+			UseRemote  bool   `env:"ENGLISH_USE_REMOTE" envDefault:"false"`
 			RemoteDict string `env:"ENGLISH_REMOTE_DICTIONARY_URL" envDefault:"https://api.dictionaryapi.dev/api/v2/entries/en/"`
-			LocalDict  string `env:"ENGLISH_LOCAL_DICTIONARY_FILENAME" envDefault:"russkiwlst_top_100.lst"`
+			LocalDict  string `env:"ENGLISH_LOCAL_DICTIONARY_FILENAME" envDefault:"pseododictengl"`
 		}
 		Russian struct {
-			UseRemote  bool   `env:"RUSSIAN_USE_REMOTE" envDefault:"true"`
+			UseRemote  bool   `env:"RUSSIAN_USE_REMOTE" envDefault:"false"`
 			RemoteDict string `env:"RUSSIAN_REMOTE_DICTIONARY_URL" envDefault:"https://dictionary.yandex.net/api/v1/dicservice/lookup?key=dict.1.1.20240301T195227Z.358cc27d6d61c293.57c5635cb7f5ef3d9b43d2e33234e3218b8b83f5&lang=ru-ru&text="`
-			LocalDict  string `env:"RUSSIAN_LOCAL_DICTIONARY_FILENAME" envDefault:"russkiwlst_top_100.lst"`
+			LocalDict  string `env:"RUSSIAN_LOCAL_DICTIONARY_FILENAME" envDefault:"pseododictrus"`
 		}
 		LeakedPasswords struct {
-			LocalDict string `env:"ENGLISH_LOCAL_DICTIONARY_FILENAME" envDefault:"russkiwlst_top_100.lst"`
+			LocalDict string `env:"LEAKED_PASSWORDS_DICTIONARY_FILENAME" envDefault:"russkiwlst_top_100.lst"`
 		}
 		Frequency struct {
-			LocalDict string `env:"ENGLISH_LOCAL_DICTIONARY_FILENAME" envDefault:"5000words.txt"`
+			LocalDict string `env:"RUSSIAN_FREQUENCY_DICTIONARY_FILENAME" envDefault:"5000words.txt"`
 		}
+	}
+
+	Translator struct {
+		MinLengthToCheckDict int `env:"MIN_LENGTH_TO_CHECK_DICTIONARY" envDefault:"4"`
 	}
 }
 
@@ -69,7 +77,16 @@ func ParseConfig() (*Config, error) {
 func printFromConfig(cfg *Config) func(string, ...any) {
 	if cfg.Verbose {
 		return func(str string, args ...any) {
-			fmt.Printf(str+"\n", args)
+			log := false
+			for _, level := range cfg.LevelsOfLogging {
+				if strings.HasPrefix(str, level) {
+					log = true
+					break
+				}
+			}
+			if log {
+				fmt.Printf(str+"\n", args...)
+			}
 		}
 	}
 	return func(s string, a ...any) {}
@@ -92,7 +109,7 @@ func englishDictFromConfig(cfg *Config) (dictionaries.Dictionary, error) {
 
 func russianDictFromConfig(cfg *Config) (dictionaries.Dictionary, error) {
 	if cfg.Dictionaries.Russian.UseRemote {
-		dict, err := dictionaries.NewRemoteDictionary(cfg.Dictionaries.Russian.RemoteDict)
+		dict, err := dictionaries.NewYandexAPIDictionary(cfg.Dictionaries.Russian.RemoteDict)
 		if err != nil {
 			return nil, err
 		}

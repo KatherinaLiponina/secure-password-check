@@ -19,6 +19,9 @@ func SplitPassword(password string) []string {
 			prevSymbolClass = class
 		}
 	}
+	if prevSymbolClass == Letter {
+		parts = append(parts, part)
+	}
 	return parts
 }
 
@@ -46,17 +49,26 @@ func DetermineClass(symbol rune) SymbolClass {
 func PossibleSplits(word string) []string {
 	res := make([]string, 0)
 	wordRuned := []rune(word)
-	for n := 3; n < len(wordRuned); n++ {
+	for n := len(wordRuned) - 1; n >= 4; n-- {
 		res = append(res, splitOnN(wordRuned, n)...)
 	}
 	return res
 }
 
 func splitOnN(word []rune, n int) []string {
-	res := make([]string, 0, len(word) / n + 1)
-	for i := 0; i < len(word) - n; i+=n {
+	res := make([]string, 0, len(word)/n+1)
+	for i := 0; i < len(word)-n+1; i++ {
 		res = append(res, string(word[i:i+n]))
 	}
-	res = append(res, string(word[(len(word) / n * n):]))
 	return res
+}
+
+func RemovedSymbols(word string) string {
+	var clearedWord string
+	for _, symbol := range word {
+		if DetermineClass(symbol) == Letter {
+			clearedWord += string(symbol)
+		}
+	}
+	return clearedWord
 }

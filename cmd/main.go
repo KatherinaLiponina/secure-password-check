@@ -26,7 +26,7 @@ func main() {
 	leakedPasswords, err := dictionaries.NewDictionaryFromFile(config.Dictionaries.LeakedPasswords.LocalDict)
 	var dictionaryChecker core.Checker
 	if err != nil {
-		fmt.Println("WARN: error while reading leaked password dict")
+		fmt.Println("WARN: error while reading leaked password dict: dictionary check is disabled!")
 		dictionaryChecker = core.NewNoneChecker()
 	} else {
 		dictionaryChecker = dictionary.NewChecker(
@@ -53,6 +53,7 @@ func main() {
 	frequencyDict, err := parser.GetDictionaryWithFrequency(config.Dictionaries.Frequency.LocalDict)
 	var translitChecker core.Checker
 	if err != nil {
+		fmt.Printf("WARN: frequensy dictionary parsing error %s: translit check is disabled!\n", err.Error())
 		translitChecker = core.NewNoneChecker()
 	} else {
 		translitChecker = translit.NewChecker(
@@ -60,13 +61,16 @@ func main() {
 			corrector.Corrector{Dict: frequencyDict, Letters: []rune("абвгдежзийклмнопрстуфхцчшщъыьэюя")},
 			englDict,
 			rusDict,
+			config.Translator.MinLengthToCheckDict,
 		)
 	}
 
 	checkerCfg := checkersConfig{
 		regexpChecker: regulars.NewChecker(
 			printFunc,
-			regulars.Config{MinLength: config.Regulars.MinLength},
+			regulars.Config{MinLength: config.Regulars.MinLength,
+				MaxSameSeqenceSymbols: config.Regulars.MaxSameSeqenceSymbols,
+				AdditionalRegExprs:    config.Regulars.AdditionalRegexps},
 		),
 		leakedPasswordsDict: leakedPasswords,
 		dictionaryChecker:   dictionaryChecker,
@@ -78,40 +82,36 @@ func main() {
 		translitChecker: translitChecker,
 	}
 
-	result := checkPassword(&checkerCfg, config.Password)
-	logger.Info(result)
+	result := checkPassword(&checkerCfg, config.Password, printFunc)
+	if result {
+		fmt.Println("Password is secure!")
+	} else {
+		fmt.Println("Password is insecure!")
+	}
 }
 
-func startInteractiveShell(checker core.Checker) {
-	// TODO: implement
-}
-
-func checkPassword(cfg *checkersConfig, password string) bool {
-	fmt.Println("DEBUG: starting stage 1")
+func checkPassword(cfg *checkersConfig, password string, printFunc func(string, ...any)) bool {
+	printFunc("DEBUG: starting stage 1: regexp checker")
 	// stage 1: regexp checker
 	if !cfg.regexpChecker.IsSecure(password) {
 		return false
 	}
 
-	fmt.Println("DEBUG: starting stage 2")
+	printFunc("DEBUG: starting stage 2: leaked passwords")
 	// stage 2: leaked passwords
 	if !cfg.dictionaryChecker.IsSecure(password) {
 		return false
 	}
 
-	fmt.Println("DEBUG: starting stage 3")
+	printFunc("DEBUG: starting stage 3: calculate crack time using entropy")
 	// stage 3: calculate crack time using entropy
 	if !cfg.entropyChecker.IsSecure(password) {
 		return false
 	}
 
-	fmt.Println("DEBUG: starting stage 4")
+	printFunc("DEBUG: starting stage 4: translit")
 	// stage 4: translit
-	if !cfg.translitChecker.IsSecure(password) {
-		return false
-	}
-
-	return true
+	return cfg.translitChecker.IsSecure(password)
 }
 
 type checkersConfig struct {

@@ -1,4 +1,3 @@
-The corpus size is 26121614 words.
 1 9601.05 а misc
 2 66.69 абсолютно adv
 3 27.56 абсолютный adj
@@ -4999,3 +4998,4 @@ The corpus size is 26121614 words.
 4998 187.81 ясно adv
 4999 82.46 ясный adj
 5000 127.44 ящик noun
+5001 1000 вася noun

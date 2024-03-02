@@ -15,6 +15,7 @@ func (c *dictionariesChecker) IsSecure(password string) bool {
 		c.print("ERROR: %s is word from dictionary", password)
 		return false
 	}
+	c.print("INFO: dictionary check is passed")
 	return true
 }
 

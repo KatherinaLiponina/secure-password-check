@@ -7,7 +7,7 @@ import (
 )
 
 type Corrector struct {
-	Dict map[string]float64
+	Dict    map[string]float64
 	Letters []rune
 }
 
@@ -16,7 +16,6 @@ func (c *Corrector) Correct(word string) string {
 	return c.correction(word)
 }
 
-
 func (c *Corrector) correction(word string) string {
 	candidates := c.candidates(word)
 	var answer string
@@ -24,12 +23,11 @@ func (c *Corrector) correction(word string) string {
 	for _, cand := range candidates { // TODO: refactor
 		if c.Dict[cand] > max {
 			answer = cand
-			max = c.Dict[cand] 
+			max = c.Dict[cand]
 		}
 	}
 	return answer
 }
-
 
 func (c *Corrector) candidates(word string) []string {
 	return append(append(c.known([]string{word}), c.known(c.edits1(word))...), c.known(c.edits2(word))...)
@@ -56,11 +54,11 @@ func (c *Corrector) edits1(word string) []string {
 		splits = append(splits, split{left: runedWord[:i], right: []rune(word)[i:]})
 	}
 
-	set := make(map[string]struct{}, 2 * (k + 1) * len(runedWord) + k - 1) 
+	set := make(map[string]struct{}, 2*(k+1)*len(runedWord)+k-1)
 
 	// deletes
-	for _, sp := range splits {
-		set[string(sp.left)+string(sp.right[1:])] = struct{}{}
+	for i := 0; i < len(splits)-1; i++ {
+		set[string(splits[i].left)+string(splits[i].right[1:])] = struct{}{}
 	}
 
 	// transposes
@@ -70,9 +68,9 @@ func (c *Corrector) edits1(word string) []string {
 	}
 
 	// replaces
-	for _, sp := range splits {
+	for i := 0; i < len(splits)-1; i++ {
 		for _, letter := range letters {
-			set[string(sp.left)+string(letter)+string(sp.right[1:])] = struct{}{}
+			set[string(splits[i].left)+string(letter)+string(splits[i].right[1:])] = struct{}{}
 		}
 	}
 

@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	MinLength          int
-	AdditionalRegExprs []string
+	MinLength             int
+	MaxSameSeqenceSymbols int // TODO: unsupported now (coundn't think about optimal regexp)
+	AdditionalRegExprs    []string
 }
 
 type RegularExpressionStore struct {
@@ -64,6 +65,7 @@ func (c *regularsChecker) checkPasswordLength(password string) bool {
 		c.print("ERROR: password's length is less than %d", c.config.MinLength)
 		return false
 	}
+	c.print("INFO: length check is passed")
 	return true
 }
 
@@ -75,6 +77,9 @@ func (c *regularsChecker) checkPasswordFeatures(password string) bool {
 			c.print("ERROR: password doesn't match regexpr %s", expr.String())
 			result = false
 		}
+	}
+	if result {
+		c.print("INFO: regulars check is passed")
 	}
 	return result
 }

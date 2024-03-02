@@ -68,7 +68,7 @@ func ReplaceLatinWithCyrillic(password string) string {
 		'z': 'з',
 	}
 
-	diletters := map[string]rune {
+	diletters := map[string]rune{
 		"sh": 'ш',
 		"ch": 'ч',
 		"zh": 'ж',
@@ -77,10 +77,11 @@ func ReplaceLatinWithCyrillic(password string) string {
 
 	var translatedPassword string
 	symbols := []rune(password)
-	for i := range symbols {
-		if i + 1 < len(symbols) {
-			if sym, ok := diletters[string(symbols[i]) + string(symbols[i+1])]; ok {
+	for i := 0; i < len(symbols); i++ {
+		if i+1 < len(symbols) {
+			if sym, ok := diletters[string(symbols[i])+string(symbols[i+1])]; ok {
 				translatedPassword += string(sym)
+				i++
 				continue
 			}
 		}
@@ -95,7 +96,7 @@ func ReplaceLatinWithCyrillic(password string) string {
 }
 
 func TranslateWithSymbolReplacements(password string) string {
-	translator := map[rune]rune {
+	translator := map[rune]rune{
 		'4': 'a',
 		'@': 'a',
 		'8': 'b',
@@ -113,10 +114,10 @@ func TranslateWithSymbolReplacements(password string) string {
 		s, ok := translator[symbol]
 		if ok {
 			translatedPassword += string(s)
+		} else {
+			translatedPassword += string(symbol)
 		}
-		translatedPassword += string(symbol)
-	}	
+	}
 
-	// TODO: this should return 2^n passwords not one extually
 	return translatedPassword
 }

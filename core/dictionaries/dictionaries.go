@@ -2,8 +2,10 @@ package dictionaries
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"secure-password-check/core/parser"
+	"strings"
 
 	"golang.org/x/exp/maps"
 )
@@ -65,5 +67,38 @@ func (d *remoteDictionary) IsPresent(word string) bool {
 }
 
 func (d *remoteDictionary) GetWords() ([]string, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
+// yandex has really uncomfortable api, so we use different structure
+type yandexDict struct {
+	url string
+}
+
+func NewYandexAPIDictionary(url string) (Dictionary, error) {
+	dict := yandexDict{url: url}
+	if !dict.IsPresent("мир") {
+		return nil, fmt.Errorf("can't establish connection with %s", url)
+	}
+	return &dict, nil
+}
+
+func (d *yandexDict) IsPresent(word string) bool {
+	requestURL := fmt.Sprintf("%s%s", d.url, word)
+	res, err := http.Get(requestURL)
+	if err != nil {
+		return false
+	}
+	if res.StatusCode != http.StatusOK {
+		return false
+	}
+	body, error := io.ReadAll(res.Body)
+	if error != nil {
+		fmt.Println(error)
+	}
+	return strings.Contains(string(body), word)
+}
+
+func (d *yandexDict) GetWords() ([]string, error) {
 	return nil, fmt.Errorf("not implemented")
 }
