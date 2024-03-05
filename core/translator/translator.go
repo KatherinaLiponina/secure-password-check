@@ -114,7 +114,7 @@ func TranslateWithSymbolReplacements(password string) string {
 		s, ok := translator[symbol]
 		if ok {
 			translatedPassword += string(s)
-		} else {
+		} else if symbol >= 'a' && symbol <= 'z' || symbol >= 'A' && symbol <= 'Z' {
 			translatedPassword += string(symbol)
 		}
 	}

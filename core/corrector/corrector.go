@@ -30,7 +30,7 @@ func (c *Corrector) correction(word string) string {
 }
 
 func (c *Corrector) candidates(word string) []string {
-	return append(append(c.known([]string{word}), c.known(c.edits1(word))...), c.known(c.edits2(word))...)
+	return append(c.known([]string{word}), c.known(c.edits1(word))...)
 }
 
 func (c *Corrector) known(words []string) []string {
@@ -89,12 +89,12 @@ type split struct {
 	right []rune
 }
 
-func (c *Corrector) edits2(word string) []string {
-	res := make([]string, 0, 100000) // дохера
-	edits := c.edits1(word)
-	for _, e1 := range edits {
-		e2 := c.edits1(e1)
-		res = append(res, e2...)
-	}
-	return res
-}
+// func (c *Corrector) edits2(word string) []string {
+// 	res := make([]string, 0, 100000)
+// 	edits := c.edits1(word)
+// 	for _, e1 := range edits {
+// 		e2 := c.edits1(e1)
+// 		res = append(res, e2...)
+// 	}
+// 	return res
+// }

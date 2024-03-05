@@ -49,7 +49,7 @@ func DetermineClass(symbol rune) SymbolClass {
 func PossibleSplits(word string) []string {
 	res := make([]string, 0)
 	wordRuned := []rune(word)
-	for n := len(wordRuned) - 1; n >= 4; n-- {
+	for n := len(wordRuned) - 1; n >= 5; n-- {
 		res = append(res, splitOnN(wordRuned, n)...)
 	}
 	return res
