@@ -114,6 +114,9 @@ func (c *translitChecker) checkViaKeyboardTranslation(word string) bool {
 func (c *translitChecker) checkViaTransliteration(word string) bool {
 	replaced := translator.ReplaceLatinWithCyrillic(word)
 	corrected := c.correction.Correct(replaced)
+	if len(corrected) == 0 {
+		corrected = replaced
+	}
 	if len([]rune(corrected)) >= c.minLengthToCheckDict && c.rusDict.IsPresent(corrected) {
 		c.print("DEBUG: %s was translated as %s and fixed as %s", word, replaced, corrected)
 		c.print("ERROR: Part of password is in russian dictionary: %s", corrected)

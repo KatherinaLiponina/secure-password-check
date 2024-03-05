@@ -40,7 +40,7 @@ func TranslateKeybord(password string) string {
 
 func ReplaceLatinWithCyrillic(password string) string {
 	letters := map[rune]rune{
-		'a': 'a',
+		'a': 'а',
 		'b': 'б',
 		'c': 'ц',
 		'd': 'д',
